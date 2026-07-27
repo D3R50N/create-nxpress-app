@@ -1,37 +1,47 @@
 #!/usr/bin/env node
 
-import { intro, outro, text, select, confirm, spinner, isCancel, cancel } from '@clack/prompts';
-import chalk from 'chalk';
-import { Command } from 'commander';
-import fs from 'fs-extra';
-import path from 'path';
-import { execSync } from 'child_process';
+import {
+  intro,
+  outro,
+  text,
+  select,
+  confirm,
+  spinner,
+  isCancel,
+  cancel,
+} from "@clack/prompts";
+import chalk from "chalk";
+import { Command } from "commander";
+import fs from "fs-extra";
+import path from "path";
+import { execSync } from "child_process";
 
 const program = new Command();
 
 program
-  .name('create-nxpress-app')
-  .description('Scaffold a new Nxpress project')
-  .argument('[project-directory]', 'Directory for the project')
-  .option('-e, --engine <engine>', 'Template engine (handlebars, ejs, html)')
-  .option('--tailwind', 'Include Tailwind CSS support', true)
-  .option('--app-dir <dir>', 'Directory for application routes', 'app')
-  .option('--components-dir <dir>', 'Directory for components', 'components')
-  .option('--public-dir <dir>', 'Directory for static assets', 'public')
-  .option('--skip-install', 'Skip installing dependencies', false)
+  .name("create-nxpress-app")
+  .description("Scaffold a new Nxpress project")
+  .argument("[project-directory]", "Directory for the project")
+  .option("-e, --engine <engine>", "Template engine (handlebars, ejs, html)")
+  .option("-p, --port <number>", "Port number")
+  .option("--tailwind", "Include Tailwind CSS support", true)
+  .option("--app-dir <dir>", "Directory for application routes")
+  .option("--components-dir <dir>", "Directory for components")
+  .option("--public-dir <dir>", "Directory for static assets")
+  .option("--skip-install", "Skip installing dependencies", false)
   .action(async (projectDirArg, options) => {
     console.log();
-    intro(chalk.bgCyan.black(' create-nxpress-app '));
+    intro(chalk.bgCyan.black(" Create Nxpress App "));
 
     let projectDir = projectDirArg;
     if (!projectDir) {
       const res = await text({
-        message: 'Where would you like to create your project?',
-        placeholder: 'my-nxpress-app',
-        defaultValue: 'my-nxpress-app',
+        message: "Where would you like to create your project?",
+        placeholder: "my-nxpress-app",
+        defaultValue: "my-nxpress-app",
       });
       if (isCancel(res)) {
-        cancel('Operation cancelled.');
+        cancel("Operation cancelled.");
         process.exit(0);
       }
       projectDir = res;
@@ -45,72 +55,99 @@ program
         initialValue: false,
       });
       if (isCancel(overwrite) || !overwrite) {
-        cancel('Operation cancelled.');
+        cancel("Operation cancelled.");
         process.exit(0);
       }
     }
 
     let engine = options.engine;
-    if (!engine || !['handlebars', 'ejs', 'html'].includes(engine)) {
+    if (!engine || !["handlebars", "ejs", "html"].includes(engine)) {
       const selectedEngine = await select({
-        message: 'Which template engine do you want to use?',
+        message: "Which template engine do you want to use?",
         options: [
-          { value: 'handlebars', label: 'Handlebars (Recommended)', hint: 'Clean syntax & partials' },
-          { value: 'ejs', label: 'EJS', hint: 'Embedded JavaScript templates' },
-          { value: 'html', label: 'HTML', hint: 'Plain HTML templates' },
+          {
+            value: "handlebars",
+            label: "Handlebars (Recommended)",
+            hint: "Clean syntax & partials",
+          },
+          { value: "ejs", label: "EJS", hint: "Embedded JavaScript templates" },
+          { value: "html", label: "HTML", hint: "Plain HTML templates" },
         ],
       });
       if (isCancel(selectedEngine)) {
-        cancel('Operation cancelled.');
+        cancel("Operation cancelled.");
         process.exit(0);
       }
       engine = selectedEngine as string;
+    }
+
+    let port = options.port ? parseInt(options.port, 10) : 3000;
+    if (process.stdin.isTTY && !options.port) {
+      const portRes = await text({
+        message: "Port number:",
+        placeholder: "3000",
+        defaultValue: "3000",
+        validate: (val) =>
+          !!val && (isNaN(Number(val)) || Number(val) <= 0)
+            ? "Port must be a valid positive number"
+            : undefined,
+      });
+      if (isCancel(portRes)) {
+        cancel("Operation cancelled.");
+        process.exit(0);
+      }
+      port = parseInt(portRes as string, 10);
     }
 
     let appDirName = options.appDir;
     let componentsDirName = options.componentsDir;
     let publicDirName = options.publicDir;
 
-    if (process.stdin.isTTY && !options.appDir && !options.componentsDir && !options.publicDir) {
+    if (
+      process.stdin.isTTY &&
+      !options.appDir &&
+      !options.componentsDir &&
+      !options.publicDir
+    ) {
       const customizeDirs = await confirm({
-        message: 'Do you want to customize directory names?',
+        message: "Do you want to customize directory names?",
         initialValue: false,
       });
       if (isCancel(customizeDirs)) {
-        cancel('Operation cancelled.');
+        cancel("Operation cancelled.");
         process.exit(0);
       }
 
       if (customizeDirs) {
         const appRes = await text({
-          message: 'Routes directory name:',
-          placeholder: 'app',
-          defaultValue: 'app',
+          message: "Routes directory name:",
+          placeholder: "app",
+          defaultValue: "app",
         });
         if (isCancel(appRes)) {
-          cancel('Operation cancelled.');
+          cancel("Operation cancelled.");
           process.exit(0);
         }
         appDirName = appRes as string;
 
         const compRes = await text({
-          message: 'Components directory name:',
-          placeholder: 'components',
-          defaultValue: 'components',
+          message: "Components directory name:",
+          placeholder: "components",
+          defaultValue: "components",
         });
         if (isCancel(compRes)) {
-          cancel('Operation cancelled.');
+          cancel("Operation cancelled.");
           process.exit(0);
         }
         componentsDirName = compRes as string;
 
         const pubRes = await text({
-          message: 'Public directory name:',
-          placeholder: 'public',
-          defaultValue: 'public',
+          message: "Public directory name:",
+          placeholder: "public",
+          defaultValue: "public",
         });
         if (isCancel(pubRes)) {
-          cancel('Operation cancelled.');
+          cancel("Operation cancelled.");
           process.exit(0);
         }
         publicDirName = pubRes as string;
@@ -120,18 +157,18 @@ program
     let shouldInstall = !options.skipInstall;
     if (!options.skipInstall && process.stdin.isTTY) {
       const res = await confirm({
-        message: 'Install dependencies using pnpm?',
+        message: "Install dependencies using pnpm?",
         initialValue: true,
       });
       if (isCancel(res)) {
-        cancel('Operation cancelled.');
+        cancel("Operation cancelled.");
         process.exit(0);
       }
       shouldInstall = res as boolean;
     }
 
     const s = spinner();
-    s.start('Scaffolding project...');
+    s.start("Scaffolding project...");
 
     fs.ensureDirSync(targetPath);
 
@@ -144,11 +181,12 @@ program
     fs.ensureDirSync(componentsDir);
     fs.ensureDirSync(publicDir);
 
-    const ext = engine === 'handlebars' ? 'hbs' : engine;
+    const ext = engine === "handlebars" ? "hbs" : engine;
 
     // Root layout
-    const layoutContent = engine === 'handlebars'
-      ? `<!DOCTYPE html>
+    const layoutContent =
+      engine === "handlebars"
+        ? `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -160,8 +198,8 @@ program
   {{{body}}}
 </body>
 </html>`
-      : engine === 'ejs'
-      ? `<!DOCTYPE html>
+        : engine === "ejs"
+          ? `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -173,7 +211,7 @@ program
   <%- body %>
 </body>
 </html>`
-      : `<!DOCTYPE html>
+          : `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -189,8 +227,9 @@ program
     fs.writeFileSync(path.join(appDir, `layout.${ext}`), layoutContent);
 
     // Index page
-    const indexPageContent = engine === 'handlebars'
-      ? `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
+    const indexPageContent =
+      engine === "handlebars"
+        ? `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
   <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
     Welcome to {{title}}
   </h1>
@@ -199,8 +238,8 @@ program
     <p class="text-sm font-mono text-cyan-400">Edit <span class="text-amber-300">${appDirName}/index.${ext}</span> to get started.</p>
   </div>
 </div>`
-      : engine === 'ejs'
-      ? `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
+        : engine === "ejs"
+          ? `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
   <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
     Welcome to <%= title %>
   </h1>
@@ -209,7 +248,7 @@ program
     <p class="text-sm font-mono text-cyan-400">Edit <span class="text-amber-300">${appDirName}/index.${ext}</span> to get started.</p>
   </div>
 </div>`
-      : `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
+          : `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
   <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
     Welcome to Nxpress
   </h1>
@@ -228,83 +267,86 @@ export async function props(req: Request, res: Response) {
   };
 }
 `;
-    fs.writeFileSync(path.join(appDir, 'index.ts'), indexTsContent);
+    fs.writeFileSync(path.join(appDir, "index.ts"), indexTsContent);
 
     // App CSS for Tailwind v4
-    fs.writeFileSync(path.join(targetPath, 'app.css'), `@import "tailwindcss";\n`);
+    fs.writeFileSync(
+      path.join(targetPath, "app.css"),
+      `@import "tailwindcss";\n`,
+    );
 
     // Server file
     const serverTsContent = `import { nxpress } from '@nxpress/core';
 
 const app = nxpress({
-  engine: '${engine === 'handlebars' ? 'hbs' : engine}',
+  engine: '${engine === "handlebars" ? "hbs" : engine}',
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || ${port};
 app.listen(PORT, () => {
   console.log(\`Nxpress server running on http://localhost:\${PORT}\`);
 });
 `;
-    fs.writeFileSync(path.join(targetPath, 'server.ts'), serverTsContent);
+    fs.writeFileSync(path.join(targetPath, "server.ts"), serverTsContent);
 
-    const pkgVersion = '1.0.1';
+    const pkgVersion = "1.0.1";
 
     // nxpress.config.json
     const nxConfig = {
       $schema: `https://unpkg.com/@nxpress/core@${pkgVersion}/schema.json`,
-      port: 3000,
-      engine: engine === 'handlebars' ? 'hbs' : engine,
+      port,
+      engine: engine === "handlebars" ? "hbs" : engine,
       appDir: appDirName,
       componentsDir: componentsDirName,
       publicDir: publicDirName,
     };
     fs.writeFileSync(
-      path.join(targetPath, 'nxpress.config.json'),
-      JSON.stringify(nxConfig, null, 2)
+      path.join(targetPath, "nxpress.config.json"),
+      JSON.stringify(nxConfig, null, 2),
     );
 
     // package.json for target project
     const projectPkgJson = {
       name: path.basename(targetPath),
-      version: '0.1.0',
+      version: "0.1.0",
       private: true,
       scripts: {
-        dev: 'nxpress dev',
-        build: 'tsc',
-        start: 'nxpress start',
+        dev: "nxpress dev",
+        build: "tsc",
+        start: "nxpress start",
       },
       dependencies: {
-        '@nxpress/core': `^${pkgVersion}`,
-        ...(engine === 'handlebars' ? { hbs: '^4.2.0' } : {}),
-        ...(engine === 'ejs' ? { ejs: '^3.1.10' } : {}),
+        "@nxpress/core": `^${pkgVersion}`,
+        ...(engine === "handlebars" ? { hbs: "^4.2.0" } : {}),
+        ...(engine === "ejs" ? { ejs: "^3.1.10" } : {}),
       },
       devDependencies: {
-        typescript: '^5.3.3',
-        '@types/node': '^20.11.24',
-        '@types/express': '^4.17.21',
+        typescript: "^5.3.3",
+        "@types/node": "^20.11.24",
+        "@types/express": "^4.17.21",
       },
     };
 
     fs.writeFileSync(
-      path.join(targetPath, 'package.json'),
-      JSON.stringify(projectPkgJson, null, 2)
+      path.join(targetPath, "package.json"),
+      JSON.stringify(projectPkgJson, null, 2),
     );
 
     // tsconfig.json for target project
     const projectTsConfig = {
       compilerOptions: {
-        target: 'ES2022',
-        module: 'CommonJS',
-        moduleResolution: 'node',
+        target: "ES2022",
+        module: "CommonJS",
+        moduleResolution: "node",
         strict: true,
         esModuleInterop: true,
         skipLibCheck: true,
       },
-      include: ['**/*'],
+      include: ["**/*"],
     };
     fs.writeFileSync(
-      path.join(targetPath, 'tsconfig.json'),
-      JSON.stringify(projectTsConfig, null, 2)
+      path.join(targetPath, "tsconfig.json"),
+      JSON.stringify(projectTsConfig, null, 2),
     );
 
     // .gitignore
@@ -313,26 +355,26 @@ dist
 .env
 *.log
 `;
-    fs.writeFileSync(path.join(targetPath, '.gitignore'), gitignoreContent);
+    fs.writeFileSync(path.join(targetPath, ".gitignore"), gitignoreContent);
 
-    s.stop('Project structure created successfully.');
+    s.stop("Project structure created successfully.");
 
     if (shouldInstall) {
       const instSpinner = spinner();
-      instSpinner.start('Installing dependencies with pnpm...');
+      instSpinner.start("Installing dependencies with pnpm...");
       try {
-        execSync('pnpm install', { cwd: targetPath, stdio: 'ignore' });
-        instSpinner.stop('Dependencies installed successfully.');
+        execSync("pnpm install", { cwd: targetPath, stdio: "ignore" });
+        instSpinner.stop("Dependencies installed successfully.");
       } catch (err) {
-        instSpinner.stop('Failed to install dependencies automatically.');
+        instSpinner.stop("Failed to install dependencies automatically.");
       }
     }
 
     outro(
       `Project created in ${chalk.cyan(projectDir)}!\n\n` +
-      `Next steps:\n` +
-      `  ${chalk.cyan(`cd ${projectDir}`)}\n` +
-      `  ${chalk.cyan('pnpm dev')}`
+        `Next steps:\n` +
+        `  ${chalk.cyan(`cd ${projectDir}`)}\n` +
+        `  ${chalk.cyan("pnpm dev")}`,
     );
   });
 

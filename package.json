@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js"
   },
