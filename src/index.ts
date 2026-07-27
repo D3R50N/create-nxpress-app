@@ -14,7 +14,10 @@ import chalk from "chalk";
 import { Command } from "commander";
 import fs from "fs-extra";
 import path from "path";
-import { execSync } from "child_process";
+import { execSync, exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 const program = new Command();
 
@@ -191,7 +194,6 @@ program
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}}</title>
-  <link rel="stylesheet" href="/app.css">
 </head>
 <body class="bg-slate-900 text-white min-h-screen">
   {{{body}}}
@@ -204,7 +206,6 @@ program
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
-  <link rel="stylesheet" href="/app.css">
 </head>
 <body class="bg-slate-900 text-white min-h-screen">
   <%- body %>
@@ -216,7 +217,6 @@ program
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nxpress App</title>
-  <link rel="stylesheet" href="/app.css">
 </head>
 <body class="bg-slate-900 text-white min-h-screen">
   <!-- Content -->
@@ -359,7 +359,7 @@ dist
       const instSpinner = spinner();
       instSpinner.start("Installing dependencies with pnpm...");
       try {
-        execSync("pnpm install", { cwd: targetPath, stdio: "ignore" });
+        await execAsync("pnpm install", { cwd: targetPath });
         instSpinner.stop("Dependencies installed successfully.");
       } catch (err) {
         instSpinner.stop("Failed to install dependencies automatically.");
