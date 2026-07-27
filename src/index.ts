@@ -99,9 +99,9 @@ program
       port = parseInt(portRes as string, 10);
     }
 
-    let appDirName = options.appDir;
-    let componentsDirName = options.componentsDir;
-    let publicDirName = options.publicDir;
+    let appDirName = options.appDir || "app";
+    let componentsDirName = options.componentsDir || "components";
+    let publicDirName = options.publicDir || "public";
 
     if (
       process.stdin.isTTY &&
@@ -166,7 +166,6 @@ program
       }
       shouldInstall = res as boolean;
     }
-
     const s = spinner();
     s.start("Scaffolding project...");
 
@@ -258,7 +257,7 @@ program
     fs.writeFileSync(path.join(appDir, `index.${ext}`), indexPageContent);
 
     // Data loader for index page
-    const indexTsContent = `import { Request, Response } from 'express';
+    const indexTsContent = `import type { Request, Response } from '@nxpress/core';
 
 export async function props(req: Request, res: Response) {
   return {
@@ -289,7 +288,7 @@ app.listen(PORT, () => {
 `;
     fs.writeFileSync(path.join(targetPath, "server.ts"), serverTsContent);
 
-    const pkgVersion = "1.0.1";
+    const pkgVersion = "1.0.4";
 
     // nxpress.config.json
     const nxConfig = {
@@ -317,13 +316,10 @@ app.listen(PORT, () => {
       },
       dependencies: {
         "@nxpress/core": `^${pkgVersion}`,
-        ...(engine === "handlebars" ? { hbs: "^4.2.0" } : {}),
-        ...(engine === "ejs" ? { ejs: "^3.1.10" } : {}),
       },
       devDependencies: {
         typescript: "^5.3.3",
         "@types/node": "^20.11.24",
-        "@types/express": "^4.17.21",
       },
     };
 
