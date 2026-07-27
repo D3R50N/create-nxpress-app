@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
 import {
-  intro,
-  outro,
-  text,
-  select,
-  confirm,
-  spinner,
-  isCancel,
   cancel,
+  confirm,
+  intro,
+  isCancel,
+  outro,
+  select,
+  spinner,
+  text,
 } from "@clack/prompts";
 import chalk from "chalk";
+import { exec } from "child_process";
 import { Command } from "commander";
 import fs from "fs-extra";
 import path from "path";
-import { execSync, exec } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
@@ -229,7 +229,7 @@ program
     const indexPageContent =
       engine === "handlebars"
         ? `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
-  <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
+  <h1 class="text-5xl font-bold mb-4 bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
     Welcome to {{title}}
   </h1>
   <p class="text-xl text-slate-400 mb-8">{{description}}</p>
@@ -239,7 +239,7 @@ program
 </div>`
         : engine === "ejs"
           ? `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
-  <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
+  <h1 class="text-5xl font-bold mb-4 bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
     Welcome to <%= title %>
   </h1>
   <p class="text-xl text-slate-400 mb-8"><%= description %></p>
@@ -248,7 +248,7 @@ program
   </div>
 </div>`
           : `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
-  <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
+  <h1 class="text-5xl font-bold mb-4 bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
     Welcome to Nxpress
   </h1>
   <p class="text-xl text-slate-400 mb-8">Express.js with Next.js developer experience</p>
@@ -257,7 +257,7 @@ program
     fs.writeFileSync(path.join(appDir, `index.${ext}`), indexPageContent);
 
     // Data loader for index page
-    const indexTsContent = `import type { Request, Response } from '@nxpress/core';
+    const indexTsContent = `import { Request, Response } from "express";
 
 export async function props(req: Request, res: Response) {
   return {
@@ -271,7 +271,7 @@ export async function props(req: Request, res: Response) {
     // App CSS for Tailwind v4
     fs.writeFileSync(
       path.join(targetPath, "app.css"),
-      `@import "tailwindcss";\n`,
+      `@import "tailwindcss";\n@import "tailwindcss/preflight";\n@tailwind utilities;\n`,
     );
 
     // Server file
@@ -288,7 +288,7 @@ app.listen(PORT, () => {
 `;
     fs.writeFileSync(path.join(targetPath, "server.ts"), serverTsContent);
 
-    const pkgVersion = "1.0.4";
+    const pkgVersion = "1.0.5";
 
     // nxpress.config.json
     const nxConfig = {
@@ -318,8 +318,9 @@ app.listen(PORT, () => {
         "@nxpress/core": `^${pkgVersion}`,
       },
       devDependencies: {
-        typescript: "^5.3.3",
-        "@types/node": "^20.11.24",
+        "@types/express": "^5.0.6",
+        "@types/node": "^26.1.1",
+        typescript: "^7.0.2",
       },
     };
 
@@ -331,14 +332,17 @@ app.listen(PORT, () => {
     // tsconfig.json for target project
     const projectTsConfig = {
       compilerOptions: {
-        target: "ES2022",
-        module: "CommonJS",
-        moduleResolution: "node",
+        target: "esnext",
+        module: "nodenext",
+        moduleResolution: "nodenext",
         strict: true,
         esModuleInterop: true,
         skipLibCheck: true,
+        types: ["node", "express"],
       },
-      include: ["**/*"],
+
+      include: ["**/*.ts"],
+      exclude: ["node_modules", "dist"],
     };
     fs.writeFileSync(
       path.join(targetPath, "tsconfig.json"),
