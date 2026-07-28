@@ -104,16 +104,22 @@ program
     }
 
     let engine = options.engine;
-    if (!engine || !["handlebars", "ejs", "html"].includes(engine)) {
+    if (!engine || !["ejs", "handlebars", "nunjucks", "liquid", "html"].includes(engine)) {
       const selectedEngine = await select({
         message: "Which template engine do you want to use?",
         options: [
           {
+            value: "ejs",
+            label: "EJS (Eta) (Default)",
+            hint: "Fast EJS syntax powered by Eta engine",
+          },
+          {
             value: "handlebars",
-            label: "Handlebars (Recommended)",
+            label: "Handlebars",
             hint: "Clean syntax & partials",
           },
-          { value: "ejs", label: "EJS", hint: "Embedded JavaScript templates" },
+          { value: "nunjucks", label: "Nunjucks", hint: "Jinja2-inspired template engine" },
+          { value: "liquid", label: "LiquidJS", hint: "Secure Shopify-style templates" },
           { value: "html", label: "HTML", hint: "Plain HTML templates" },
         ],
       });
@@ -255,7 +261,7 @@ program
     fs.ensureDirSync(publicDir);
 
     const templatesDir = path.resolve(__dirname, "..", "templates");
-    const ext = engine === "handlebars" ? "hbs" : engine;
+    const ext = engine === "handlebars" ? "hbs" : (engine === "nunjucks" ? "njk" : engine);
 
     // Copy public assets (e.g., logo.png)
     const templatePublicDir = path.join(templatesDir, "public");
@@ -274,7 +280,7 @@ program
     if (fs.existsSync(indexTemplatePath)) {
       let content = fs.readFileSync(indexTemplatePath, "utf8");
       content = content.replace(
-        /app\/index\.(hbs|ejs|html)/g,
+        /app\/index\.(hbs|ejs|html|njk|liquid)/g,
         `${appDirName}/index.${ext}`,
       );
       fs.writeFileSync(path.join(appDir, `index.${ext}`), content);

@@ -1,6 +1,6 @@
 {
   "name": "create-nxpress-app",
-  "version": "1.0.8",
+  "version": "1.1.2",
   "description": "CLI tool to create Nxpress applications",
   "main": "dist/index.js",
   "bin": {

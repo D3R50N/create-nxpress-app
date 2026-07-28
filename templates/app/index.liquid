@@ -1,0 +1,82 @@
+<div class="min-h-screen flex flex-col justify-between max-w-6xl mx-auto px-6 py-8">
+  <header class="flex items-center justify-between py-4 border-b border-slate-800/80">
+    <div class="flex items-center gap-3">
+      <span class="font-bold text-lg text-slate-100 tracking-tight">Nxpress</span>
+      <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
+        v{{ version }}
+      </span>
+    </div>
+    {% if E.NODE_ENV != 'production' %}
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Dev Server Active
+        </span>
+      </div>
+    {% endif %}
+  </header>
+
+  <main class="py-16 md:py-24 text-center my-auto">
+    <div class="flex justify-center mb-6">
+      <img src="/logo.png" alt="Nxpress" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-[0_0_25px_rgba(99,102,241,0.5)] transition-transform hover:scale-105 duration-300" />
+    </div>
+
+    <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white mb-6 max-w-4xl mx-auto leading-[1.1]">
+      Build fast Node apps with
+      <span class="bg-linear-to-r from-indigo-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent">
+        {{ title }}
+      </span>
+    </h1>
+
+    <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+      {{ description }}
+    </p>
+
+    <div class="max-w-xl mx-auto mb-16">
+      <div class="group relative rounded-2xl bg-linear-to-b from-slate-800/80 to-slate-900/90 border border-slate-700/80 p-5 shadow-2xl backdrop-blur-md transition-all hover:border-indigo-500/40">
+        <div class="flex items-center justify-between mb-3 text-xs text-slate-400 font-mono border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+            <span class="ml-2 text-slate-500">app/index.liquid</span>
+          </div>
+          <span class="text-indigo-400 font-sans text-[11px] font-semibold tracking-wide uppercase">Quick Start</span>
+        </div>
+        <div class="text-left font-mono text-sm py-2">
+          <p class="text-slate-300">
+            <span class="text-purple-400">Edit</span>
+            <span class="text-emerald-300 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">app/index.liquid</span>
+            <span class="text-slate-400">to customize this page.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto text-left">
+      {% for feat in features %}
+        <div class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800/80 hover:border-slate-700 transition-all duration-200 group">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-800 text-indigo-400 border border-slate-700/50">
+              {{ feat.tag }}
+            </span>
+            <span class="text-slate-600 group-hover:text-slate-400 transition-colors text-sm">→</span>
+          </div>
+          <h3 class="text-base font-bold text-slate-100 mb-1.5 group-hover:text-indigo-300 transition-colors">
+            {{ feat.title }}
+          </h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            {{ feat.desc }}
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <footer class="py-6 border-t border-slate-800/60 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <p>Powered by <span class="text-slate-300 font-medium">Nxpress</span></p>
+    <p class="font-mono text-slate-600">
+      {{ R.base }}
+    </p>
+  </footer>
+</div>
