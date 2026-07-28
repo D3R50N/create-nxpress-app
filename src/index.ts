@@ -19,6 +19,42 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
+const deps = ["@nxpress/core"];
+const devDeps = ["@types/express", "@types/node", "typescript"];
+
+function getInstallCommands(pm: string, depsList: string[], devDepsList: string[]) {
+  const depsStr = depsList.join(" ");
+  const devDepsStr = devDepsList.join(" ");
+  switch (pm) {
+    case "npm":
+      return {
+        depsCmd: `npm install ${depsStr}`,
+        devDepsCmd: `npm install -D ${devDepsStr}`,
+      };
+    case "yarn":
+      return {
+        depsCmd: `yarn add ${depsStr}`,
+        devDepsCmd: `yarn add -D ${devDepsStr}`,
+      };
+    case "bun":
+      return {
+        depsCmd: `bun add ${depsStr}`,
+        devDepsCmd: `bun add -d ${devDepsStr}`,
+      };
+    case "deno":
+      return {
+        depsCmd: `deno add ${depsStr}`,
+        devDepsCmd: `deno add -D ${devDepsStr}`,
+      };
+    case "pnpm":
+    default:
+      return {
+        depsCmd: `pnpm add ${depsStr}`,
+        devDepsCmd: `pnpm add -D ${devDepsStr}`,
+      };
+  }
+}
+
 const program = new Command();
 
 program
@@ -31,7 +67,7 @@ program
   .option("--app-dir <dir>", "Directory for application routes")
   .option("--components-dir <dir>", "Directory for components")
   .option("--public-dir <dir>", "Directory for static assets")
-  .option("--skip-install", "Skip installing dependencies", false)
+  .option("--pkg-manager <pm>", "Package manager (pnpm, npm, yarn, bun, deno)")
   .action(async (projectDirArg, options) => {
     console.log();
     intro(chalk.bgCyan.black(" Create Nxpress App "));
@@ -157,18 +193,29 @@ program
       }
     }
 
-    let shouldInstall = !options.skipInstall;
-    if (!options.skipInstall && process.stdin.isTTY) {
-      const res = await confirm({
-        message: "Install dependencies using pnpm?",
-        initialValue: true,
+    let pkgManager = options.pkgManager;
+    if (process.stdin.isTTY && !options.pkgManager) {
+      const selectedPm = await select({
+        message: "Which package manager do you want to use?",
+        options: [
+          { value: "pnpm", label: "pnpm (Default)", hint: "Fast & disk space efficient" },
+          { value: "npm", label: "npm", hint: "Default Node.js package manager" },
+          { value: "yarn", label: "yarn", hint: "Classic/Berry package manager" },
+          { value: "bun", label: "bun", hint: "Ultra-fast runtime & package manager" },
+          { value: "deno", label: "deno", hint: "Modern JavaScript/TypeScript runtime" },
+        ],
+        initialValue: "pnpm",
       });
-      if (isCancel(res)) {
+      if (isCancel(selectedPm)) {
         cancel("Operation cancelled.");
         process.exit(0);
       }
-      shouldInstall = res as boolean;
+      pkgManager = selectedPm as string;
     }
+    if (!pkgManager) {
+      pkgManager = "pnpm";
+    }
+
     const s = spinner();
     s.start("Scaffolding project...");
 
@@ -288,11 +335,11 @@ app.listen(PORT, () => {
 `;
     fs.writeFileSync(path.join(targetPath, "server.ts"), serverTsContent);
 
-    const pkgVersion = "1.0.5";
+  
 
     // nxpress.config.json
     const nxConfig = {
-      $schema: `https://unpkg.com/@nxpress/core@${pkgVersion}/schema.json`,
+      $schema: `https://unpkg.com/@nxpress/core@latest/schema.json`,
       port,
       engine: engine === "handlebars" ? "hbs" : engine,
       appDir: appDirName,
@@ -305,7 +352,7 @@ app.listen(PORT, () => {
     );
 
     // package.json for target project
-    const projectPkgJson = {
+    const projectPkgJson: Record<string, any> = {
       name: path.basename(targetPath),
       version: "0.1.0",
       private: true,
@@ -313,14 +360,6 @@ app.listen(PORT, () => {
         dev: "nxpress dev",
         build: "tsc",
         start: "nxpress start",
-      },
-      dependencies: {
-        "@nxpress/core": `^${pkgVersion}`,
-      },
-      devDependencies: {
-        "@types/express": "^5.0.6",
-        "@types/node": "^26.1.1",
-        typescript: "^7.0.2",
       },
     };
 
@@ -359,22 +398,28 @@ dist
 
     s.stop("Project structure created successfully.");
 
-    if (shouldInstall) {
-      const instSpinner = spinner();
-      instSpinner.start("Installing dependencies with pnpm...");
-      try {
-        await execAsync("pnpm install", { cwd: targetPath });
-        instSpinner.stop("Dependencies installed successfully.");
-      } catch (err) {
-        instSpinner.stop("Failed to install dependencies automatically.");
-      }
+    const instSpinner = spinner();
+    instSpinner.start(`Installing dependencies with ${pkgManager}...`);
+    try {
+      const { depsCmd, devDepsCmd } = getInstallCommands(
+        pkgManager,
+        deps,
+        devDeps,
+      );
+      await execAsync(depsCmd, { cwd: targetPath });
+      await execAsync(devDepsCmd, { cwd: targetPath });
+      instSpinner.stop("Dependencies installed successfully.");
+    } catch (err) {
+      instSpinner.stop("Failed to install dependencies automatically.");
     }
+
+    const devCmd = pkgManager === "npm" ? "npm run dev" : `${pkgManager} dev`;
 
     outro(
       `Project created in ${chalk.cyan(projectDir)}!\n\n` +
         `Next steps:\n` +
         `  ${chalk.cyan(`cd ${projectDir}`)}\n` +
-        `  ${chalk.cyan("pnpm dev")}`,
+        `  ${chalk.cyan(devCmd)}`,
     );
   });
 
