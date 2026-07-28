@@ -22,7 +22,11 @@ const execAsync = promisify(exec);
 const deps = ["@nxpress/core"];
 const devDeps = ["@types/express", "@types/node", "typescript"];
 
-function getInstallCommands(pm: string, depsList: string[], devDepsList: string[]) {
+function getInstallCommands(
+  pm: string,
+  depsList: string[],
+  devDepsList: string[],
+) {
   const depsStr = depsList.join(" ");
   const devDepsStr = devDepsList.join(" ");
   switch (pm) {
@@ -198,11 +202,31 @@ program
       const selectedPm = await select({
         message: "Which package manager do you want to use?",
         options: [
-          { value: "pnpm", label: "pnpm (Default)", hint: "Fast & disk space efficient" },
-          { value: "npm", label: "npm", hint: "Default Node.js package manager" },
-          { value: "yarn", label: "yarn", hint: "Classic/Berry package manager" },
-          { value: "bun", label: "bun", hint: "Ultra-fast runtime & package manager" },
-          { value: "deno", label: "deno", hint: "Modern JavaScript/TypeScript runtime" },
+          {
+            value: "pnpm",
+            label: "pnpm (Default)",
+            hint: "Fast & disk space efficient",
+          },
+          {
+            value: "npm",
+            label: "npm",
+            hint: "Default Node.js package manager",
+          },
+          {
+            value: "yarn",
+            label: "yarn",
+            hint: "Classic/Berry package manager",
+          },
+          {
+            value: "bun",
+            label: "bun",
+            hint: "Ultra-fast runtime & package manager",
+          },
+          {
+            value: "deno",
+            label: "deno",
+            hint: "Modern JavaScript/TypeScript runtime",
+          },
         ],
         initialValue: "pnpm",
       });
@@ -230,112 +254,53 @@ program
     fs.ensureDirSync(componentsDir);
     fs.ensureDirSync(publicDir);
 
+    const templatesDir = path.resolve(__dirname, "..", "templates");
     const ext = engine === "handlebars" ? "hbs" : engine;
 
-    // Root layout
-    const layoutContent =
-      engine === "handlebars"
-        ? `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{title}}</title>
-</head>
-<body class="bg-slate-900 text-white min-h-screen">
-  {{{body}}}
-</body>
-</html>`
-        : engine === "ejs"
-          ? `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
-</head>
-<body class="bg-slate-900 text-white min-h-screen">
-  <%- body %>
-</body>
-</html>`
-          : `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nxpress App</title>
-</head>
-<body class="bg-slate-900 text-white min-h-screen">
-  <!-- Content -->
-</body>
-</html>`;
+    // Copy public assets (e.g., logo.png)
+    const templatePublicDir = path.join(templatesDir, "public");
+    if (fs.existsSync(templatePublicDir)) {
+      fs.copySync(templatePublicDir, publicDir);
+    }
 
-    fs.writeFileSync(path.join(appDir, `layout.${ext}`), layoutContent);
+    // Root layout from template
+    const layoutTemplatePath = path.join(templatesDir, "app", `layout.${ext}`);
+    if (fs.existsSync(layoutTemplatePath)) {
+      fs.copySync(layoutTemplatePath, path.join(appDir, `layout.${ext}`));
+    }
 
-    // Index page
-    const indexPageContent =
-      engine === "handlebars"
-        ? `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
-  <h1 class="text-5xl font-bold mb-4 bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-    Welcome to {{title}}
-  </h1>
-  <p class="text-xl text-slate-400 mb-8">{{description}}</p>
-  <div class="inline-block bg-slate-800 border border-slate-700 rounded-lg p-6 text-left">
-    <p class="text-sm font-mono text-cyan-400">Edit <span class="text-amber-300">${appDirName}/index.${ext}</span> to get started.</p>
-  </div>
-</div>`
-        : engine === "ejs"
-          ? `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
-  <h1 class="text-5xl font-bold mb-4 bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-    Welcome to <%= title %>
-  </h1>
-  <p class="text-xl text-slate-400 mb-8"><%= description %></p>
-  <div class="inline-block bg-slate-800 border border-slate-700 rounded-lg p-6 text-left">
-    <p class="text-sm font-mono text-cyan-400">Edit <span class="text-amber-300">${appDirName}/index.${ext}</span> to get started.</p>
-  </div>
-</div>`
-          : `<div class="max-w-4xl mx-auto px-4 py-16 text-center">
-  <h1 class="text-5xl font-bold mb-4 bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-    Welcome to Nxpress
-  </h1>
-  <p class="text-xl text-slate-400 mb-8">Express.js with Next.js developer experience</p>
-</div>`;
-
-    fs.writeFileSync(path.join(appDir, `index.${ext}`), indexPageContent);
+    // Index page from template
+    const indexTemplatePath = path.join(templatesDir, "app", `index.${ext}`);
+    if (fs.existsSync(indexTemplatePath)) {
+      let content = fs.readFileSync(indexTemplatePath, "utf8");
+      content = content.replace(
+        /app\/index\.(hbs|ejs|html)/g,
+        `${appDirName}/index.${ext}`,
+      );
+      fs.writeFileSync(path.join(appDir, `index.${ext}`), content);
+    }
 
     // Data loader for index page
-    const indexTsContent = `import { Request, Response } from "express";
-
-export async function props(req: Request, res: Response) {
-  return {
-    title: 'Nxpress App',
-    description: 'Express.js with Next.js developer experience',
-  };
-}
-`;
-    fs.writeFileSync(path.join(appDir, "index.ts"), indexTsContent);
+    const indexTsTemplatePath = path.join(templatesDir, "app", "index.ts");
+    if (fs.existsSync(indexTsTemplatePath)) {
+      fs.copySync(indexTsTemplatePath, path.join(appDir, "index.ts"));
+    }
 
     // App CSS for Tailwind v4
-    fs.writeFileSync(
-      path.join(targetPath, "app.css"),
-      `@import "tailwindcss";\n@import "tailwindcss/preflight";\n@tailwind utilities;\n`,
-    );
+    const appCssTemplatePath = path.join(templatesDir, "app.css");
+    if (fs.existsSync(appCssTemplatePath)) {
+      fs.copySync(appCssTemplatePath, path.join(targetPath, "app.css"));
+    }
 
     // Server file
-    const serverTsContent = `import { nxpress } from '@nxpress/core';
-
-const app = nxpress({
-  engine: '${engine === "handlebars" ? "hbs" : engine}',
-});
-
-const PORT = process.env.PORT || ${port};
-app.listen(PORT, () => {
-  console.log(\`Nxpress server running on http://localhost:\${PORT}\`);
-});
-`;
-    fs.writeFileSync(path.join(targetPath, "server.ts"), serverTsContent);
-
-  
+    const serverTsTemplatePath = path.join(templatesDir, "server.ts");
+    if (fs.existsSync(serverTsTemplatePath)) {
+      let serverContent = fs.readFileSync(serverTsTemplatePath, "utf8");
+      serverContent = serverContent
+        .replace("{{ENGINE}}", engine === "handlebars" ? "hbs" : engine)
+        .replace("{{PORT}}", port.toString());
+      fs.writeFileSync(path.join(targetPath, "server.ts"), serverContent);
+    }
 
     // nxpress.config.json
     const nxConfig = {

@@ -1,6 +1,6 @@
 {
   "name": "create-nxpress-app",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "CLI tool to create Nxpress applications",
   "main": "dist/index.js",
   "bin": {
@@ -34,6 +34,7 @@
     "fs-extra": "^11.4.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^26.1.1",
     "typescript": "^7.0.2"
