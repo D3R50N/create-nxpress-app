@@ -1,4 +1,16 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
+
+/**
+ * Route-level middleware for index page
+ */
+export async function middleware(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  // Route middleware logic (runs before rendering page)
+  next();
+}
 
 export async function props(req: Request, res: Response) {
   let version = "1.2.0";

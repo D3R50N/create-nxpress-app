@@ -310,6 +310,14 @@ program
       fs.copySync(middlewareTsTemplatePath, path.join(appDir, "middleware.ts"));
     }
 
+    // API route health template
+    const apiHealthTemplatePath = path.join(templatesDir, "app", "api", "health.ts");
+    if (fs.existsSync(apiHealthTemplatePath)) {
+      const apiDir = path.join(appDir, "api");
+      fs.ensureDirSync(apiDir);
+      fs.copySync(apiHealthTemplatePath, path.join(apiDir, "health.ts"));
+    }
+
     // App CSS for Tailwind v4
     const appCssTemplatePath = path.join(templatesDir, "app.css");
     if (fs.existsSync(appCssTemplatePath)) {
