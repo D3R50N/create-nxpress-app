@@ -1,18 +1,10 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction, Handler } from "express";
 
 /**
- * Route-level middleware for index page
+ * Route data loader
+ * Should be the default export of the route file or named `props`
  */
-export async function middleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  // Route middleware logic (runs before rendering page)
-  next();
-}
-
-export async function props(req: Request, res: Response) {
+export default async function props(req: Request, res: Response) {
   let version = "1.2.0";
   try {
     const f = await fetch("https://registry.npmjs.org/@nxpress/core/latest");
@@ -48,3 +40,19 @@ export async function props(req: Request, res: Response) {
     ],
   };
 }
+
+/**
+ * Route-level middleware for index page
+ */
+export async function middleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  console.log("middleware executed for page index");
+}
+
+/**
+ * Multiple route middlewares
+ */
+export const middlewares: Handler[] = [];

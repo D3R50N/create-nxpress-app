@@ -1,21 +1,28 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction, Handler } from "express";
+
+export async function get(req: Request, res: Response) {
+  return {
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  };
+}
 
 /**
- * Route-level middleware for /api/health
+ * Single route middleware
  */
 export async function middleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
-  // API route middleware check
-  next();
+  console.log("middleware executed for /api/health");
 }
 
-export async function GET(req: Request, res: Response) {
-  return res.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
-}
+/**
+ * Multiple route middlewares
+ */
+export const middlewares: Handler[] = [
+  // cors(),
+  // ...
+];
