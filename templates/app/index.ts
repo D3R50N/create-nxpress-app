@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
 export async function props(req: Request, res: Response) {
-  let version = "1.0.8";
+  let version = "1.2.0";
   try {
     const f = await fetch("https://registry.npmjs.org/@nxpress/core/latest");
     version = (await f.json()).version;
@@ -19,18 +19,18 @@ export async function props(req: Request, res: Response) {
         tag: "Zero Config",
       },
       {
+        title: "Folder & Route Middleware",
+        desc: "Powerful middleware support with auto-loading middleware.ts.",
+        tag: "Middleware",
+      },
+      {
         title: "Server Data Props",
-        desc: "Export props functions in route files for SSR data loading.",
+        desc: "Export props functions in route companion files for SSR data loading.",
         tag: "SSR Ready",
       },
       {
-        title: "Tailwind CSS Integration",
-        desc: "Modern styling out of the box with zero boilerplate.",
-        tag: "Styling",
-      },
-      {
-        title: "Fast Handlebars Engine",
-        desc: "Dynamic server rendering with seamless layout templates.",
+        title: "Multi-Engine Templating",
+        desc: "Built-in support for EJS (Eta), Handlebars, Nunjucks, LiquidJS & HTML.",
         tag: "Templating",
       },
     ],

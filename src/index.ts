@@ -104,7 +104,10 @@ program
     }
 
     let engine = options.engine;
-    if (!engine || !["ejs", "handlebars", "nunjucks", "liquid", "html"].includes(engine)) {
+    if (
+      !engine ||
+      !["ejs", "handlebars", "nunjucks", "liquid", "html"].includes(engine)
+    ) {
       const selectedEngine = await select({
         message: "Which template engine do you want to use?",
         options: [
@@ -118,8 +121,16 @@ program
             label: "Handlebars",
             hint: "Clean syntax & partials",
           },
-          { value: "nunjucks", label: "Nunjucks", hint: "Jinja2-inspired template engine" },
-          { value: "liquid", label: "LiquidJS", hint: "Secure Shopify-style templates" },
+          {
+            value: "nunjucks",
+            label: "Nunjucks",
+            hint: "Jinja2-inspired template engine",
+          },
+          {
+            value: "liquid",
+            label: "LiquidJS",
+            hint: "Secure Shopify-style templates",
+          },
           { value: "html", label: "HTML", hint: "Plain HTML templates" },
         ],
       });
@@ -261,7 +272,8 @@ program
     fs.ensureDirSync(publicDir);
 
     const templatesDir = path.resolve(__dirname, "..", "templates");
-    const ext = engine === "handlebars" ? "hbs" : (engine === "nunjucks" ? "njk" : engine);
+    const ext =
+      engine === "handlebars" ? "hbs" : engine === "nunjucks" ? "njk" : engine;
 
     // Copy public assets (e.g., logo.png)
     const templatePublicDir = path.join(templatesDir, "public");
@@ -290,6 +302,12 @@ program
     const indexTsTemplatePath = path.join(templatesDir, "app", "index.ts");
     if (fs.existsSync(indexTsTemplatePath)) {
       fs.copySync(indexTsTemplatePath, path.join(appDir, "index.ts"));
+    }
+
+    // App middleware template
+    const middlewareTsTemplatePath = path.join(templatesDir, "app", "middleware.ts");
+    if (fs.existsSync(middlewareTsTemplatePath)) {
+      fs.copySync(middlewareTsTemplatePath, path.join(appDir, "middleware.ts"));
     }
 
     // App CSS for Tailwind v4
@@ -342,15 +360,20 @@ program
     // tsconfig.json for target project
     const projectTsConfig = {
       compilerOptions: {
-        target: "esnext",
-        module: "nodenext",
-        moduleResolution: "nodenext",
+        target: "ESNext",
+        module: "ESNext",
+        moduleResolution: "bundler",
+        allowImportingTsExtensions: true,
+        noEmit: true,
         strict: true,
         esModuleInterop: true,
         skipLibCheck: true,
         types: ["node", "express"],
+        resolveJsonModule: true,
+        paths: {
+          "@/*": ["./*"],
+        },
       },
-
       include: ["**/*.ts"],
       exclude: ["node_modules", "dist"],
     };
