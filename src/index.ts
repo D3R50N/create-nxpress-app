@@ -305,13 +305,22 @@ program
     }
 
     // App middleware template
-    const middlewareTsTemplatePath = path.join(templatesDir, "app", "middleware.ts");
+    const middlewareTsTemplatePath = path.join(
+      templatesDir,
+      "app",
+      "middleware.ts",
+    );
     if (fs.existsSync(middlewareTsTemplatePath)) {
       fs.copySync(middlewareTsTemplatePath, path.join(appDir, "middleware.ts"));
     }
 
     // API route health template
-    const apiHealthTemplatePath = path.join(templatesDir, "app", "api", "health.ts");
+    const apiHealthTemplatePath = path.join(
+      templatesDir,
+      "app",
+      "api",
+      "health.ts",
+    );
     if (fs.existsSync(apiHealthTemplatePath)) {
       const apiDir = path.join(appDir, "api");
       fs.ensureDirSync(apiDir);
@@ -334,6 +343,14 @@ program
       fs.writeFileSync(path.join(targetPath, "server.ts"), serverContent);
     }
 
+    const appName = path
+      .basename(targetPath)
+      .replace(/[^A-Za-z0-9]/gi, " ")
+      .trim()
+      .split(/\s+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
     // nxpress.config.json
     const nxConfig = {
       $schema: `https://unpkg.com/@nxpress/core@latest/schema.json`,
@@ -342,6 +359,10 @@ program
       appDir: appDirName,
       componentsDir: componentsDirName,
       publicDir: publicDirName,
+      globals: {
+        title: appName,
+        description: "",
+      },
     };
     fs.writeFileSync(
       path.join(targetPath, "nxpress.config.json"),
@@ -351,7 +372,7 @@ program
     // package.json for target project
     const projectPkgJson: Record<string, any> = {
       name: path.basename(targetPath),
-      version: "0.1.0",
+      version: "0.0.1",
       private: true,
       scripts: {
         dev: "nxpress dev",
