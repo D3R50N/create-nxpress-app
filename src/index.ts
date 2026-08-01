@@ -20,7 +20,7 @@ import { promisify } from "util";
 const execAsync = promisify(exec);
 
 const deps = ["@nxpress/core"];
-const devDeps = ["@types/express", "@types/node", "typescript"];
+const devDeps = ["@types/express", "@types/node", "typescript", "tsx"];
 
 function getInstallCommands(
   pm: string,
@@ -346,16 +346,6 @@ program
       fs.copySync(appCssTemplatePath, path.join(targetPath, "app.css"));
     }
 
-    // Server file
-    const serverTsTemplatePath = path.join(templatesDir, "server.ts");
-    if (fs.existsSync(serverTsTemplatePath)) {
-      let serverContent = fs.readFileSync(serverTsTemplatePath, "utf8");
-      serverContent = serverContent
-        .replace("{{ENGINE}}", engine === "handlebars" ? "hbs" : engine)
-        .replace("{{PORT}}", port.toString());
-      fs.writeFileSync(path.join(targetPath, "server.ts"), serverContent);
-    }
-
     const appName = path
       .basename(targetPath)
       .replace(/[^A-Za-z0-9]/gi, " ")
@@ -363,6 +353,21 @@ program
       .split(/\s+/)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+
+    // Server file
+    const serverTsTemplatePath = path.join(templatesDir, "server.ts");
+    if (fs.existsSync(serverTsTemplatePath)) {
+      let serverContent = fs.readFileSync(serverTsTemplatePath, "utf8");
+      serverContent = serverContent
+        .replace("{{ENGINE}}", engine === "handlebars" ? "hbs" : engine)
+        .replace("{{APP_DIR}}", appDirName)
+        .replace("{{COMPONENTS_DIR}}", componentsDirName)
+        .replace("{{PUBLIC_DIR}}", publicDirName)
+        .replace("{{TITLE}}", appName)
+        .replace("{{DESCRIPTION}}", "Build fast with Nxpress")
+        .replace("{{PORT}}", port.toString());
+      fs.writeFileSync(path.join(targetPath, "server.ts"), serverContent);
+    }
 
     // nxpress.config.json
     const nxConfig = {
@@ -391,6 +396,7 @@ program
         dev: "nxpress dev",
         build: "tsc",
         start: "nxpress start",
+        serve: "tsx --watch server",
       },
     };
 
@@ -450,12 +456,20 @@ dist
     }
 
     const devCmd = pkgManager === "npm" ? "npm run dev" : `${pkgManager} dev`;
+    const serveCmd =
+      pkgManager === "npm" ? "npm run serve" : `${pkgManager} serve`;
+
+    const cdStep =
+      projectDir === "." || projectDir === "./"
+        ? ""
+        : `Next steps:\n  ${chalk.cyan(`cd ${projectDir}`)}\n\n`;
 
     outro(
       `Project created in ${chalk.cyan(projectDir)}!\n\n` +
-        `Next steps:\n` +
-        `  ${chalk.cyan(`cd ${projectDir}`)}\n` +
-        `  ${chalk.cyan(devCmd)}`,
+        cdStep +
+        `Start development:\n` +
+        `  ${chalk.cyan(serveCmd)} (via server.ts)\n` +
+        `  ${chalk.cyan(devCmd)} (via Nxpress CLI)`,
     );
   });
 
