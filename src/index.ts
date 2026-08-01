@@ -357,16 +357,7 @@ program
     // Server file
     const serverTsTemplatePath = path.join(templatesDir, "server.ts");
     if (fs.existsSync(serverTsTemplatePath)) {
-      let serverContent = fs.readFileSync(serverTsTemplatePath, "utf8");
-      serverContent = serverContent
-        .replace("{{ENGINE}}", engine === "handlebars" ? "hbs" : engine)
-        .replace("{{APP_DIR}}", appDirName)
-        .replace("{{COMPONENTS_DIR}}", componentsDirName)
-        .replace("{{PUBLIC_DIR}}", publicDirName)
-        .replace("{{TITLE}}", appName)
-        .replace("{{DESCRIPTION}}", "Build fast with Nxpress")
-        .replace("{{PORT}}", port.toString());
-      fs.writeFileSync(path.join(targetPath, "server.ts"), serverContent);
+      fs.copySync(serverTsTemplatePath, path.join(targetPath, "server.ts"));
     }
 
     // nxpress.config.json
