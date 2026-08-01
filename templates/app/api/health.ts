@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction, Handler } from "express";
+import type { Request, Response, NextFunction, Handler } from "@nxpress/core";
 
 export async function get(req: Request, res: Response) {
   return {

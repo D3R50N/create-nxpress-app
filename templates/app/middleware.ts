@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "@nxpress/core";
 
 /*
  * Application-level middlewares executed for all routes in /app

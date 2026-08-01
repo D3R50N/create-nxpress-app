@@ -287,6 +287,19 @@ program
       fs.copySync(layoutTemplatePath, path.join(appDir, `layout.${ext}`));
     }
 
+    // FeatureCard component from template
+    const componentTemplatePath = path.join(
+      templatesDir,
+      "components",
+      `FeatureCard.${ext}`,
+    );
+    if (fs.existsSync(componentTemplatePath)) {
+      fs.copySync(
+        componentTemplatePath,
+        path.join(componentsDir, `FeatureCard.${ext}`),
+      );
+    }
+
     // Index page from template
     const indexTemplatePath = path.join(templatesDir, "app", `index.${ext}`);
     if (fs.existsSync(indexTemplatePath)) {
@@ -361,7 +374,7 @@ program
       publicDir: publicDirName,
       globals: {
         title: appName,
-        description: "",
+        description: "Build fast with Nxpress",
       },
     };
     fs.writeFileSync(
