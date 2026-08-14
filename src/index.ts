@@ -68,6 +68,7 @@ program
   .option("-e, --engine <engine>", "Template engine (handlebars, ejs, html)")
   .option("-p, --port <number>", "Port number")
   .option("--tailwind", "Include Tailwind CSS support", true)
+  .option("-m, --minimal", "Create a minimal project without views or components")
   .option("--app-dir <dir>", "Directory for application routes")
   .option("--components-dir <dir>", "Directory for components")
   .option("--public-dir <dir>", "Directory for static assets")
@@ -102,6 +103,8 @@ program
         process.exit(0);
       }
     }
+
+    const isMinimal = Boolean(options.minimal);
 
     let engine = options.engine;
     if (
@@ -275,70 +278,81 @@ program
     const ext =
       engine === "handlebars" ? "hbs" : engine === "nunjucks" ? "njk" : engine;
 
-    // Copy public assets (e.g., logo.png)
-    const templatePublicDir = path.join(templatesDir, "public");
-    if (fs.existsSync(templatePublicDir)) {
-      fs.copySync(templatePublicDir, publicDir);
-    }
+    if (!isMinimal) {
+      // Copy public assets (e.g., logo.png)
+      const templatePublicDir = path.join(templatesDir, "public");
+      if (fs.existsSync(templatePublicDir)) {
+        fs.copySync(templatePublicDir, publicDir);
+      }
 
-    // Root layout from template
-    const layoutTemplatePath = path.join(templatesDir, "app", `layout.${ext}`);
-    if (fs.existsSync(layoutTemplatePath)) {
-      fs.copySync(layoutTemplatePath, path.join(appDir, `layout.${ext}`));
-    }
+      // Root layout from template
+      const layoutTemplatePath = path.join(templatesDir, "app", `layout.${ext}`);
+      if (fs.existsSync(layoutTemplatePath)) {
+        fs.copySync(layoutTemplatePath, path.join(appDir, `layout.${ext}`));
+      }
 
-    // FeatureCard component from template
-    const componentTemplatePath = path.join(
-      templatesDir,
-      "components",
-      `FeatureCard.${ext}`,
-    );
-    if (fs.existsSync(componentTemplatePath)) {
-      fs.copySync(
-        componentTemplatePath,
-        path.join(componentsDir, `FeatureCard.${ext}`),
+      // FeatureCard component from template
+      const componentTemplatePath = path.join(
+        templatesDir,
+        "components",
+        `FeatureCard.${ext}`,
       );
-    }
+      if (fs.existsSync(componentTemplatePath)) {
+        fs.copySync(
+          componentTemplatePath,
+          path.join(componentsDir, `FeatureCard.${ext}`),
+        );
+      }
 
-    // Index page from template
-    const indexTemplatePath = path.join(templatesDir, "app", `index.${ext}`);
-    if (fs.existsSync(indexTemplatePath)) {
-      let content = fs.readFileSync(indexTemplatePath, "utf8");
-      content = content.replace(
-        /app\/index\.(hbs|ejs|html|njk|liquid)/g,
-        `${appDirName}/index.${ext}`,
+      // Index page from template
+      const indexTemplatePath = path.join(templatesDir, "app", `index.${ext}`);
+      if (fs.existsSync(indexTemplatePath)) {
+        let content = fs.readFileSync(indexTemplatePath, "utf8");
+        content = content.replace(
+          /app\/index\.(hbs|ejs|html|njk|liquid)/g,
+          `${appDirName}/index.${ext}`,
+        );
+        fs.writeFileSync(path.join(appDir, `index.${ext}`), content);
+      }
+
+      // Data loader for index page
+      const indexTsTemplatePath = path.join(templatesDir, "app", "index.ts");
+      if (fs.existsSync(indexTsTemplatePath)) {
+        fs.copySync(indexTsTemplatePath, path.join(appDir, "index.ts"));
+      }
+
+      // App middleware template
+      const middlewareTsTemplatePath = path.join(
+        templatesDir,
+        "app",
+        "middleware.ts",
       );
-      fs.writeFileSync(path.join(appDir, `index.${ext}`), content);
+      if (fs.existsSync(middlewareTsTemplatePath)) {
+        fs.copySync(middlewareTsTemplatePath, path.join(appDir, "middleware.ts"));
+      }
+
+      // API route health template
+      const apiHealthTemplatePath = path.join(
+        templatesDir,
+        "app",
+        "api",
+        "health.ts",
+      );
+      if (fs.existsSync(apiHealthTemplatePath)) {
+        const apiDir = path.join(appDir, "api");
+        fs.ensureDirSync(apiDir);
+        fs.copySync(apiHealthTemplatePath, path.join(apiDir, "health.ts"));
+      }
     }
 
-    // Data loader for index page
-    const indexTsTemplatePath = path.join(templatesDir, "app", "index.ts");
-    if (fs.existsSync(indexTsTemplatePath)) {
-      fs.copySync(indexTsTemplatePath, path.join(appDir, "index.ts"));
-    }
-
-    // App middleware template
-    const middlewareTsTemplatePath = path.join(
-      templatesDir,
-      "app",
-      "middleware.ts",
-    );
-    if (fs.existsSync(middlewareTsTemplatePath)) {
-      fs.copySync(middlewareTsTemplatePath, path.join(appDir, "middleware.ts"));
-    }
-
-    // API route health template
-    const apiHealthTemplatePath = path.join(
-      templatesDir,
-      "app",
-      "api",
-      "health.ts",
-    );
-    if (fs.existsSync(apiHealthTemplatePath)) {
-      const apiDir = path.join(appDir, "api");
-      fs.ensureDirSync(apiDir);
-      fs.copySync(apiHealthTemplatePath, path.join(apiDir, "health.ts"));
-    }
+    
+      // Locales for i18n
+      const templateLocalesDir = path.join(templatesDir, "locales");
+      if (fs.existsSync(templateLocalesDir)) {
+        const targetLocalesDir = path.join(targetPath, "locales");
+        fs.ensureDirSync(targetLocalesDir);
+        fs.copySync(templateLocalesDir, targetLocalesDir);
+      }
 
     // App CSS for Tailwind v4
     const appCssTemplatePath = path.join(templatesDir, "app.css");
@@ -368,6 +382,12 @@ program
       appDir: appDirName,
       componentsDir: componentsDirName,
       publicDir: publicDirName,
+      localesDir: "locales",
+      i18n: {
+        locales: ["en", "fr"],
+        defaultLocale: "en",
+        prefixDefault: false,
+      },
       globals: {
         title: appName,
         description: "Build fast with Nxpress",
@@ -386,6 +406,7 @@ program
       scripts: {
         dev: "nxpress dev",
         build: "tsc",
+        export: "nxpress export",
         start: "nxpress start",
         serve: "tsx --watch server",
       },
@@ -459,8 +480,10 @@ dist
       `Project created in ${chalk.cyan(projectDir)}!\n\n` +
         cdStep +
         `Start development:\n` +
-        `  ${chalk.cyan(serveCmd)} (via server.ts)\n` +
-        `  ${chalk.cyan(devCmd)} (via Nxpress CLI)`,
+        `  ${chalk.cyan(devCmd)} (via Nxpress CLI)\n` +
+        `  ${chalk.cyan(serveCmd)} (via server.ts)\n\n` +
+        `Static export (SSG):\n` +
+        `  ${chalk.cyan(pkgManager === "npm" ? "npm run export" : `${pkgManager} export`)}`,
     );
   });
 

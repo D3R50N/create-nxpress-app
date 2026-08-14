@@ -1,0 +1,7 @@
+{
+  "welcome": "Bienvenue sur {{name}}",
+  "tagline": "Le framework fullstack haute performance pour Node.js",
+  "edit_hint": "Modifiez",
+  "reload_hint": "Enregistrez pour actualiser",
+  "features_title": "Fonctionnalités Clés"
+}

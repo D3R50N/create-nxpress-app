@@ -1,17 +1,29 @@
-import type { Request, Response, NextFunction, Handler } from "@nxpress/core";
+import type { Request, Response } from "@nxpress/core";
+
+/**
+ * Route metadata export for SEO
+ */
+export const metadata = {
+  title: "Nxpress - Fast Fullstack Node.js Framework",
+  description: "Modern web framework with file-based routing, SSR and static site generation.",
+  openGraph: {
+    title: "Nxpress Framework",
+    description: "Build fast with file-based routing and SSR.",
+  },
+};
 
 /**
  * Route data loader
- * Should be the default export of the route file or named `props`
  */
 export default async function props(req: Request, res: Response) {
-  let version = "1.2.1";
+  let version = "1.3.0";
   try {
     const f = await fetch("https://registry.npmjs.org/@nxpress/core/latest");
     version = (await f.json()).version;
   } catch (err) {
     console.error("Getting Nxpress version failed.", err);
   }
+
   return {
     version,
     features: [
@@ -20,12 +32,12 @@ export default async function props(req: Request, res: Response) {
         desc: "Automatic route handling mapped to the app directory structure.",
       },
       {
-        title: "Folder & Route Middleware",
-        desc: "Powerful middleware support with auto-loading middleware.ts.",
+        title: "Internationalization (i18n)",
+        desc: "Multi-language routing with automatic translation dictionaries & SSR.",
       },
       {
-        title: "Server Data Props",
-        desc: "Export props functions in route companion files for SSR data loading.",
+        title: "Static Site Generation (SSG)",
+        desc: "Export blazingly fast pre-rendered HTML with nxpress export.",
       },
       {
         title: "Multi-Engine Templating",
@@ -34,19 +46,3 @@ export default async function props(req: Request, res: Response) {
     ],
   };
 }
-
-/**
- * Route-level middleware for index page
- */
-export async function middleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  console.log("middleware executed for page index");
-}
-
-/**
- * Multiple route middlewares
- */
-export const middlewares: Handler[] = [];
