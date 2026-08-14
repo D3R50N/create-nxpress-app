@@ -1,22 +1,29 @@
-import type { Request, Response } from "@nxpress/core";
+import type { Request, Response, NxpressMetadata } from "@nxpress/core";
 
 /**
- * Route metadata export for SEO
+ * Route metadata export for SEO (automatically injected into <head>)
  */
-export const metadata = {
-  title: "Nxpress - Fast Fullstack Node.js Framework",
-  description: "Modern web framework with file-based routing, SSR and static site generation.",
-  openGraph: {
-    title: "Nxpress Framework",
-    description: "Build fast with file-based routing and SSR.",
-  },
-};
+export function metadata(
+  req: Request,
+  res: Response,
+  globals: Record<string, any>,
+): NxpressMetadata {
+  return {
+    title: `Nxpress - ${globals.title}`,
+    description:
+      "Modern web framework with file-based routing, SSR and static site generation.",
+    openGraph: {
+      title: "Nxpress Framework",
+      description: "Build fast with file-based routing and SSR.",
+    },
+  };
+}
 
 /**
  * Route data loader
  */
 export default async function props(req: Request, res: Response) {
-  let version = "1.3.0";
+  let version = "1.3.3";
   try {
     const f = await fetch("https://registry.npmjs.org/@nxpress/core/latest");
     version = (await f.json()).version;

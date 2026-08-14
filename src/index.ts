@@ -390,7 +390,6 @@ program
       },
       globals: {
         title: appName,
-        description: "Build fast with Nxpress",
       },
     };
     fs.writeFileSync(
