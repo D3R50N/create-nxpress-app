@@ -6,10 +6,9 @@ import type { Request, Response, NxpressMetadata } from "@nxpress/core";
 export function metadata(
   req: Request,
   res: Response,
-  globals: Record<string, any>,
 ): NxpressMetadata {
   return {
-    title: `Nxpress - ${globals.title}`,
+    title: "Nxpress - Fast, Minimal Web Framework",
     description:
       "Modern web framework with file-based routing, SSR and static site generation.",
     openGraph: {
