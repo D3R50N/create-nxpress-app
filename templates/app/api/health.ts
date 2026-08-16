@@ -11,7 +11,7 @@ export async function GET(req: Request, res: Response) {
 /**
  * Route-specific middleware
  */
-export const middleware: Handler = (req, res) => {
+export const middleware: Handler = (req: Request, res: Response) => {
   res.setHeader("Cache-Control", "no-store");
 };
 
