@@ -1,13 +1,13 @@
 import type { Request, Response } from "@nxpress/core";
 import { mockUsers } from ".";
 
-// GET /api/users/:id -> Returns 200 OK or 404
 export async function GET(req: Request, res: Response) {
   const userId = Number(req.params.id);
   const user = mockUsers.find((u) => u.id === userId);
 
   if (!user) {
-    return res.status(404).json({ error: "User not found" });
+    res.status(404);
+    return { error: "User not found" };
   }
   return user;
 }
@@ -19,7 +19,8 @@ export async function PUT(req: Request, res: Response) {
   const user = mockUsers.find((u) => u.id === userId);
 
   if (!user) {
-    return res.status(404).json({ error: "User not found" });
+    res.status(404);
+    return { error: "User not found" };
   }
   if (name !== undefined) user.name = name;
   if (email !== undefined) user.email = email;
