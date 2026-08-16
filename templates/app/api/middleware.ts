@@ -1,15 +1,20 @@
-import type { Request, Response, NextFunction } from "@nxpress/core";
+import type { Request, Response } from "@nxpress/core";
 
 /**
  * Folder-level middleware applied to all /api/* routes
+ * Automatically executed without needing to call next()
  */
-export function apiLogger(req: Request, res: Response, next: NextFunction) {
-  const start = Date.now();
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    console.log(
-      `[API] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`,
-    );
-  });
-  next();
+export async function apiSecurityHeaders(req: Request, res: Response) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
 }
+
+/**
+ * Example API key authorization check
+ */
+// export async function apiKeyAuth(req: Request, res: Response) {
+//   const apiKey = req.headers["x-api-key"];
+//   if (!apiKey && req.path !== "/api/health") {
+//     res.status(401);
+//     return { error: "Unauthorized: Missing API Key" };
+//   }
+// }

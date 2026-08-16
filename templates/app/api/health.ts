@@ -1,6 +1,6 @@
-import type { Request, Response, NextFunction, Handler } from "@nxpress/core";
+import type { Request, Response, Handler } from "@nxpress/core";
 
-export async function get(req: Request, res: Response) {
+export async function GET(req: Request, res: Response) {
   return {
     status: "ok",
     timestamp: new Date().toISOString(),
@@ -9,20 +9,15 @@ export async function get(req: Request, res: Response) {
 }
 
 /**
- * Single route middleware
+ * Route-specific middleware
  */
-export async function middleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  console.log("middleware executed for /api/health");
-}
+export const middleware: Handler = (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+};
 
 /**
- * Multiple route middlewares
+ * Multiple route middlewares (optional)
  */
 export const middlewares: Handler[] = [
   // cors(),
-  // ...
 ];
